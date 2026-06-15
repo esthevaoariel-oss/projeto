@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { User, UserData } from '../types';
+import type { User, UserData, ServiceRecord } from '../types';
 
 export interface IStorageService {
   getUsers(): Promise<User[]>;
@@ -10,6 +10,11 @@ export interface IStorageService {
   getUserData(): Promise<UserData>;
   saveUserData(data: UserData): Promise<void>;
   seedAdmin(): Promise<void>;
+  // Histórico e Relatórios
+  addServiceRecord(record: ServiceRecord): Promise<void>;
+  getServiceRecordsByDay(date: string): Promise<ServiceRecord[]>;
+  getServiceRecordsByWeek(date: string): Promise<ServiceRecord[]>;
+  getServiceRecordsByMonth(year: number, month: number): Promise<ServiceRecord[]>;
 }
 
 const USERS_KEY = '@MotoGest:users';
@@ -43,11 +48,19 @@ export class AsyncStorageService implements IStorageService {
 
   async getUserData(): Promise<UserData> {
     const currentUser = await this.getCurrentUser();
-    if (!currentUser) return { motos: [], funcionarios: [], appointments: [] };
+    if (!currentUser) return { motos: [], funcionarios: [], appointments: [], serviceRecords: [] };
 
     const data = await AsyncStorage.getItem(`${DATA_PREFIX}${currentUser.id}`);
     if (data) {
-      return JSON.parse(data);
+      const parsed = JSON.parse(data);
+      return {
+        ...parsed,
+        serviceRecords: parsed.serviceRecords || []
+      };
+    }
+
+    return { motos: [], funcionarios: [], appointments: [], serviceRecords: [] };
+  }
     }
 
     return { motos: [], funcionarios: [], appointments: [] };
@@ -112,10 +125,73 @@ export class AsyncStorageService implements IStorageService {
             descricao: 'Cliente pediu urgência',
             status: 'pendente'
           }
+        ],
+        serviceRecords: [
+          {
+            id: 'sr1',
+            motoId: 'm1',
+            placa: 'ABC-1234',
+            modelo: 'CB 500F',
+            marca: 'Honda',
+            proprietario: 'João Silva',
+            servicos: ['Troca de Óleo'],
+            dataInicio: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            dataConclusao: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            status: 'concluido',
+            custo: 150
+          },
+          {
+            id: 'sr2',
+            motoId: 'm2',
+            placa: 'XYZ-9876',
+            modelo: 'MT-07',
+            marca: 'Yamaha',
+            proprietario: 'Maria Souza',
+            servicos: ['Revisão Geral', 'Troca de Pneu'],
+            dataInicio: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            dataConclusao: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            status: 'concluido',
+            custo: 450
+          }
         ]
       };
 
       await AsyncStorage.setItem(`${DATA_PREFIX}${admin.id}`, JSON.stringify(seedData));
     }
+  }
+
+  // Histórico e Relatórios
+  async addServiceRecord(record: ServiceRecord): Promise<void> {
+    const data = await this.getUserData();
+    data.serviceRecords.push(record);
+    await this.saveUserData(data);
+  }
+
+  async getServiceRecordsByDay(date: string): Promise<ServiceRecord[]> {
+    const data = await this.getUserData();
+    return data.serviceRecords.filter(record => record.dataConclusao.startsWith(date));
+  }
+
+  async getServiceRecordsByWeek(date: string): Promise<ServiceRecord[]> {
+    const targetDate = new Date(date);
+    const weekStart = new Date(targetDate);
+    weekStart.setDate(targetDate.getDate() - targetDate.getDay());
+    
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+
+    const data = await this.getUserData();
+    return data.serviceRecords.filter(record => {
+      const recordDate = new Date(record.dataConclusao);
+      return recordDate >= weekStart && recordDate <= weekEnd;
+    });
+  }
+
+  async getServiceRecordsByMonth(year: number, month: number): Promise<ServiceRecord[]> {
+    const data = await this.getUserData();
+    return data.serviceRecords.filter(record => {
+      const recordDate = new Date(record.dataConclusao);
+      return recordDate.getFullYear() === year && recordDate.getMonth() === month - 1;
+    });
   }
 }

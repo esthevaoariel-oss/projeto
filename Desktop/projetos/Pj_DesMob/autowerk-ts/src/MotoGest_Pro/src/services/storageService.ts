@@ -1,4 +1,4 @@
-import { User, UserData } from '../types';
+import type { User, UserData, ServiceRecord } from '../types';
 
 export interface IStorageService {
   getUsers(): User[];
@@ -9,6 +9,11 @@ export interface IStorageService {
   getUserData(): UserData;
   saveUserData(data: UserData): void;
   seedAdmin(): void;
+  // Histórico e Relatórios
+  addServiceRecord(record: ServiceRecord): void;
+  getServiceRecordsByDay(date: string): ServiceRecord[];
+  getServiceRecordsByWeek(date: string): ServiceRecord[];
+  getServiceRecordsByMonth(year: number, month: number): ServiceRecord[];
 }
 
 const USERS_KEY = '@MotoGest:users';
@@ -42,14 +47,18 @@ export class LocalStorageService implements IStorageService {
 
   getUserData(): UserData {
     const currentUser = this.getCurrentUser();
-    if (!currentUser) return { motos: [], funcionarios: [], appointments: [] };
+    if (!currentUser) return { motos: [], funcionarios: [], appointments: [], serviceRecords: [] };
 
     const data = localStorage.getItem(`${DATA_PREFIX}${currentUser.id}`);
     if (data) {
-      return JSON.parse(data);
+      const parsed = JSON.parse(data);
+      return {
+        ...parsed,
+        serviceRecords: parsed.serviceRecords || []
+      };
     }
 
-    return { motos: [], funcionarios: [], appointments: [] };
+    return { motos: [], funcionarios: [], appointments: [], serviceRecords: [] };
   }
 
   saveUserData(data: UserData): void {
@@ -111,10 +120,86 @@ export class LocalStorageService implements IStorageService {
             descricao: 'Cliente pediu urgência',
             status: 'pendente'
           }
+        ],
+        serviceRecords: [
+          {
+            id: 'sr1',
+            motoId: 'm1',
+            placa: 'ABC-1234',
+            modelo: 'CB 500F',
+            marca: 'Honda',
+            proprietario: 'João Silva',
+            servicos: ['Troca de Óleo'],
+            dataInicio: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            dataConclusao: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            status: 'concluido',
+            custo: 150
+          },
+          {
+            id: 'sr2',
+            motoId: 'm2',
+            placa: 'XYZ-9876',
+            modelo: 'MT-07',
+            marca: 'Yamaha',
+            proprietario: 'Maria Souza',
+            servicos: ['Revisão Geral', 'Troca de Pneu'],
+            dataInicio: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            dataConclusao: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            status: 'concluido',
+            custo: 450
+          },
+          {
+            id: 'sr3',
+            motoId: 'm1',
+            placa: 'ABC-1234',
+            modelo: 'CB 500F',
+            marca: 'Honda',
+            proprietario: 'João Silva',
+            servicos: ['Limpeza de Corrente'],
+            dataInicio: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            dataConclusao: new Date().toISOString().split('T')[0],
+            status: 'concluido',
+            custo: 80
+          }
         ]
       };
 
       localStorage.setItem(`${DATA_PREFIX}${admin.id}`, JSON.stringify(seedData));
     }
+  }
+
+  // Histórico e Relatórios
+  addServiceRecord(record: ServiceRecord): void {
+    const data = this.getUserData();
+    data.serviceRecords.push(record);
+    this.saveUserData(data);
+  }
+
+  getServiceRecordsByDay(date: string): ServiceRecord[] {
+    const data = this.getUserData();
+    return data.serviceRecords.filter(record => record.dataConclusao.startsWith(date));
+  }
+
+  getServiceRecordsByWeek(date: string): ServiceRecord[] {
+    const targetDate = new Date(date);
+    const weekStart = new Date(targetDate);
+    weekStart.setDate(targetDate.getDate() - targetDate.getDay());
+    
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+
+    const data = this.getUserData();
+    return data.serviceRecords.filter(record => {
+      const recordDate = new Date(record.dataConclusao);
+      return recordDate >= weekStart && recordDate <= weekEnd;
+    });
+  }
+
+  getServiceRecordsByMonth(year: number, month: number): ServiceRecord[] {
+    const data = this.getUserData();
+    return data.serviceRecords.filter(record => {
+      const recordDate = new Date(record.dataConclusao);
+      return recordDate.getFullYear() === year && recordDate.getMonth() === month - 1;
+    });
   }
 }
