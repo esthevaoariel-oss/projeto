@@ -71,40 +71,4 @@ Este projeto foi refatorado aplicando os princípios **SOLID** para melhorar a t
 
    ## Como subo para o GitHub por você
 
-   Posso finalizar o push para o seu repositório remoto assim que você fornecer uma das opções abaixo:
-
-   1. Repositório já criado
-      - Envie a URL do repositório (HTTPS ou SSH).
-      - Informe se deseja `main` ou `master` como branch padrão.
-      - Para push via HTTPS: garanta que seu Git esteja configurado com um PAT (Personal Access Token) ou esteja pronto para autenticação.
-      - Para push via SSH: verifique que sua chave pública esteja registrada no GitHub.
-
-   2. Não há repositório criado
-      - Posso fornecer os comandos para você criar o repositório pelo GitHub CLI ou pela interface web e, em seguida, eu faço o push.
-
-   Com autorização, executarei estes comandos:
-
-   ```bash
-   git remote add origin <REPO_URL>
-   git branch -M main   # ou master
-   git push -u origin main
-   ```
-
-   Se preferir, você pode executar os comandos acima localmente. If quiser que eu execute, por favor envie a URL do repositório e o método de autenticação (HTTPS/PAT ou SSH).
-
-   ## Boas práticas e próximos passos recomendados (sênior)
-
-   1. Extrair a camada de persistência para um micro-serviço/Backend quando houver múltiplos usuários simultâneos.
-   2. Adicionar cobertura de testes unitários para `IStorageService` e integrações (mocks).
-   3. Implementar pipelines CI (build, lint, test) no GitHub Actions.
-   4. Adicionar paginação/streaming para `ServiceRecord` se o volume crescer (>10k registros).
-   5. Planejar endpoints backend para sincronização off-line e multi-device.
-
-   ## Documentação interna
-
-   Veja também: `HISTORY_FEATURE.md` (detalhes do recurso de histórico) e `src/MotoGest_Pro/src/services/storageService.ts` para a API de armazenamento.
-
-   ---
-
-   Se quiser, eu já posso: criar um branch `release/readme` com este README e empurrar para o remoto indicado — envie a URL e o método de autenticação.
-}
+   }
