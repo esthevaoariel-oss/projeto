@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Users, Bike } from 'lucide-react';
-import { User, Moto, Funcionario, Appointment, Stats, ModalContent } from '../types';
+import { Plus, Users, Bike, Clock } from 'lucide-react';
+import type { User, Moto, Funcionario, Appointment, Stats, ModalContent } from '../types';
 import { useStorage } from '../contexts/StorageContext';
 import StatsCards from './StatsCards';
 import MotoCard from './MotoCard';
 import FuncionarioCard from './FuncionarioCard';
 import Calendar from './Calendar';
 import Modal from './Modal';
+import HistoryPanel from './HistoryPanel';
 import './AdminScreen.css';
 
 interface AdminScreenProps {
@@ -19,6 +20,7 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
   const [funcionarios, setFuncionarios] = useState<Funcionario[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [modalContent, setModalContent] = useState<ModalContent | null>(null);
+  const [activeTab, setActiveTab] = useState<'motos' | 'historico'>('motos');
 
   useEffect(() => {
     loadData();
@@ -32,7 +34,13 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
   };
 
   const saveData = (newMotos: Moto[], newFuncs: Funcionario[], newApps: Appointment[]) => {
-    storage.saveUserData({ motos: newMotos, funcionarios: newFuncs, appointments: newApps });
+    const currentData = storage.getUserData();
+    storage.saveUserData({ 
+      motos: newMotos, 
+      funcionarios: newFuncs, 
+      appointments: newApps,
+      serviceRecords: currentData.serviceRecords || []
+    });
     setMotos(newMotos);
     setFuncionarios(newFuncs);
     setAppointments(newApps);
@@ -144,7 +152,23 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
     <div className="admin-container animate-fadeIn">
       <StatsCards stats={getStats()} />
 
-      <div className="dashboard-layout">
+      <div className="admin-tabs">
+        <button
+          className={`admin-tab ${activeTab === 'motos' ? 'active' : ''}`}
+          onClick={() => setActiveTab('motos')}
+        >
+          <Bike size={18} /> Gestão de Frota
+        </button>
+        <button
+          className={`admin-tab ${activeTab === 'historico' ? 'active' : ''}`}
+          onClick={() => setActiveTab('historico')}
+        >
+          <Clock size={18} /> Histórico de Consertos
+        </button>
+      </div>
+
+      {activeTab === 'motos' ? (
+        <div className="dashboard-layout">
         <div className="dashboard-main">
           <div className="section-header">
             <h2><Bike size={24} /> Frota de Motos</h2>
@@ -221,6 +245,9 @@ const AdminScreen: React.FC<AdminScreenProps> = ({ user }) => {
           </div>
         </div>
       </div>
+      ) : (
+        <HistoryPanel />
+      )}
 
       {modalContent && (
         <Modal 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User } from './types';
+import type { User } from './types';
 import { useStorage } from './contexts/StorageContext';
 import Header from './components/Header';
 import ClienteScreen from './components/ClienteScreen';
