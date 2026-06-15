@@ -11,138 +11,100 @@ Este projeto foi refatorado aplicando os princípios **SOLID** para melhorar a t
    - Cada arquivo contém apenas tipos relacionados
 
 2. **Serviço de Storage (Dependency Inversion)**
-   - Criada interface `IStorageService` que define o contrato
-   - Implementação `LocalStorageService` para web (MotoGest_Pro)
-   - Implementação `AsyncStorageService` para mobile (MotoGest_Pro_Expo)
-   - Facilita testes e troca de implementações
+   # MotoGest Pro
 
-3. **Injeção de Dependência (Contexto React)**
-   - `StorageContext.tsx` fornece o serviço via React Context
-   - Hook `useStorage()` para acessar o serviço nos componentes
-   - Elimina imports diretos do utilitário `storage`
+   MotoGest Pro é uma plataforma multiplataforma (web + mobile) para gestão profissional de oficinas de motocicletas. Esta versão foi refatorada com foco em clareza arquitetural, testabilidade e capacidade de evolução: princípios SOLID, separação de responsabilidades e injeção de dependências.
 
-## 🚀 Como Executar
+   ## Sumário executivo (para líderes técnicos)
 
-### MotoGest_Pro (Web - Vite + React)
+   - Arquitetura: frontends web (React + Vite) e mobile (React Native + Expo) com um contrato de armazenamento (`IStorageService`) que permite trocar a camada de persistência sem impactar a UI.
+   - Objetivo desta entrega: transformar a base legada em uma fundação testável e expansível, adicionando o recurso de histórico de consertos com filtragem por dia/semana/mês.
 
-```bash
-cd src/MotoGest_Pro
+   ## Destaques técnicos
 
-# Instalar dependências (opcional, já estão instaladas)
-npm install
+   - TypeScript estrito em toda a base
+   - Inversão de dependência via `IStorageService` + React Context (`StorageContext`)
+   - Implementações: `LocalStorageService` (web) e `AsyncStorageService` (mobile)
+   - Novos tipos e domínio: `ServiceRecord` para manter o histórico de consertos
+   - UI: componente `HistoryPanel` com exportação CSV e cartões de estatísticas
 
-# Iniciar servidor de desenvolvimento
-npm run dev
+   ## Estrutura (resumo)
 
-# Build para produção
-npm run build
-```
+   - `src/MotoGest_Pro/` — Aplicação web (Vite + React + TypeScript)
+   - `src/MotoGest_Pro_Expo/` — Aplicação mobile (Expo + React Native)
+   - `src/*/types/` — Tipos do domínio
+   - `src/*/services/` — Implementação de armazenamento (`IStorageService`)
+   - `src/*/contexts/` — Providers e hooks (injeção de dependência)
+   - `src/*/components/` — Componentes visuais reutilizáveis
 
-O projeto estará disponível em `http://localhost:5173`
+   ## Pré-requisitos
 
-**Credenciais de teste:**
-- Usuário: `admin`
-- Senha: `123`
+   - Node.js >= 18
+   - npm >= 9
+   - Para mobile: Expo CLI (opcionalmente `expo` global)
 
-### MotoGest_Pro_Expo (Mobile - React Native)
+   ## Instalação e execução
 
-```bash
-cd src/MotoGest_Pro_Expo
+   Web (desenvolvimento)
+   ```bash
+   cd src/MotoGest_Pro
+   npm install
+   npm run dev
+   ```
 
-# Instalar dependências (opcional, já estão instaladas)
-npm install
+   Web (build production)
+   ```bash
+   npm run build
+   ```
 
-# Iniciar Expo
-npm start
+   Mobile (Expo)
+   ```bash
+   cd src/MotoGest_Pro_Expo
+   npm install
+   npx expo start
+   ```
 
-# Opções:
-# - Pressione 'i' para iOS simulator
-# - Pressione 'a' para Android emulator
-# - Pressione 'w' para web preview
-# - Escaneie o QR code com seu dispositivo (precisa de Expo Go)
-```
+   Credenciais seed para testes
 
-**Credenciais de teste:**
-- Usuário: `admin`
-- Senha: `123`
+   - Usuário: `admin`
+   - Senha: `123`
 
-## 📁 Estrutura do Projeto
+   ## Como subo para o GitHub por você
 
-### Antes (Monolítico)
-```
-src/
-├── types/index.ts (todos os tipos juntos)
-└── utils/storage.ts (lógica de storage + implementação)
-```
+   Posso finalizar o push para o seu repositório remoto assim que você fornecer uma das opções abaixo:
 
-### Depois (Modular)
-```
-src/
-├── types/
-│   ├── index.ts (re-exports)
-│   ├── servico.ts
-│   ├── moto.ts
-│   ├── appointment.ts
-│   ├── funcionario.ts
-│   ├── user.ts
-│   └── userData.ts
-├── services/
-│   └── storageService.ts (interface + implementação)
-├── contexts/
-│   └── StorageContext.tsx (provider + hook)
-├── utils/
-│   └── storage.ts (instância do serviço)
-└── components/
-    └── (componentes agora usam useStorage())
-```
+   1. Repositório já criado
+      - Envie a URL do repositório (HTTPS ou SSH).
+      - Informe se deseja `main` ou `master` como branch padrão.
+      - Para push via HTTPS: garanta que seu Git esteja configurado com um PAT (Personal Access Token) ou esteja pronto para autenticação.
+      - Para push via SSH: verifique que sua chave pública esteja registrada no GitHub.
 
-## 🧪 Testabilidade
+   2. Não há repositório criado
+      - Posso fornecer os comandos para você criar o repositório pelo GitHub CLI ou pela interface web e, em seguida, eu faço o push.
 
-Agora é fácil criar mocks para testes:
+   Com autorização, executarei estes comandos:
 
-```typescript
-// Mock para testes
-class MockStorageService implements IStorageService {
-  async getUsers(): Promise<User[]> {
-    return []; // retornar dados de teste
-  }
-  // ... implementar outros métodos
+   ```bash
+   git remote add origin <REPO_URL>
+   git branch -M main   # ou master
+   git push -u origin main
+   ```
+
+   Se preferir, você pode executar os comandos acima localmente. If quiser que eu execute, por favor envie a URL do repositório e o método de autenticação (HTTPS/PAT ou SSH).
+
+   ## Boas práticas e próximos passos recomendados (sênior)
+
+   1. Extrair a camada de persistência para um micro-serviço/Backend quando houver múltiplos usuários simultâneos.
+   2. Adicionar cobertura de testes unitários para `IStorageService` e integrações (mocks).
+   3. Implementar pipelines CI (build, lint, test) no GitHub Actions.
+   4. Adicionar paginação/streaming para `ServiceRecord` se o volume crescer (>10k registros).
+   5. Planejar endpoints backend para sincronização off-line e multi-device.
+
+   ## Documentação interna
+
+   Veja também: `HISTORY_FEATURE.md` (detalhes do recurso de histórico) e `src/MotoGest_Pro/src/services/storageService.ts` para a API de armazenamento.
+
+   ---
+
+   Se quiser, eu já posso: criar um branch `release/readme` com este README e empurrar para o remoto indicado — envie a URL e o método de autenticação.
 }
-
-// Usar no teste
-const mockStorage = new MockStorageService();
-// Testar componentes com o mock
-```
-
-## 🎯 Princípios SOLID Aplicados
-
-- **S**ingle Responsibility: Cada arquivo tem uma única responsabilidade
-- **O**pen/Closed: Aberto para extensão (novas implementações de storage), fechado para modificação
-- **L**iskov Substitution: Qualquer implementação de `IStorageService` pode ser usada
-- **I**nterface Segregation: Interface mínima e específica
-- **D**ependency Inversion: Componentes dependem da interface, não da implementação
-
-## 📝 Próximos Passos Recomendados
-
-1. Adicionar testes unitários para os serviços
-2. Implementar retry logic no AsyncStorageService
-3. Adicionar error handling mais robusto
-4. Criar testes E2E para os fluxos de autenticação
-5. Adicionar logging e monitoring
-
-## 🔧 Troubleshooting
-
-### Erro: "useStorage must be used within a StorageProvider"
-- Certifique-se que o componente está dentro de `<StorageProvider>`
-
-### Erro de tipos no TypeScript
-- Verificar se todos os imports de tipos estão corretos
-- Executar `npm run build` para validar tipos
-
-### Problema ao rodar Expo
-- Limpar cache: `npm start -- --clear`
-- Atualizar Expo CLI: `npm install -g expo-cli@latest`
-
----
-
-**Desenvolvido com ❤️ seguindo princípios SOLID**
