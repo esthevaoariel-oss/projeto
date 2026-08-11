@@ -31,7 +31,3 @@ MotoGest Pro é uma solução completa para gestão de oficinas de motocicletas,
 | **L**iskov Substitution | `LocalStorageService` e `AsyncStorageService` são intercambiáveis via Context API | Mesma interface, comportamentos diferentes |
 | **I**nterface Segregation | Interfaces específicas como `IAuthService` e `IStorageService` sem métodos não utilizados | Clientes não dependem do que não usam |
 | **D**ependency Inversion | Componentes dependem de `IStorageService` (abstração), não de `localStorage` (concreto) | UI desacoplada da persistência |
-
----
-
-## 🏗️ Arquitetura do Sistema
